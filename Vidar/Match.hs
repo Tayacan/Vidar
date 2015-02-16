@@ -24,6 +24,7 @@ type VidarMatch a = StateT Bindings (Either Fail) a
 
 data Fail = MismatchedNames String String
           | BadInput -- the right-hand Vidar is weird
+          | NotFail
     deriving Show
 
 type Bindings = M.Map String String
@@ -34,17 +35,30 @@ eval v = evalStateT v $ M.empty
 err :: Fail -> VidarMatch ()
 err = lift . Left
 
-match :: Eq a
-      => Vidar a -- structure we want
-      -> Vidar a -- structure we actually have
+match :: Vidar -- structure we want
+      -> Vidar -- structure we actually have
       -> VidarMatch ()
 match _ _ = undefined
 
-matchBlocks :: Eq a
-            => Block a
-            -> Block a
+matchBlocks :: Block
+            -> Block
             -> VidarMatch ()
-matchBlocks = undefined
+matchBlocks (StrictBlock a) (StrictBlock b) = matchStrict a b
+matchBlocks _ _ = undefined
+
+matchStrict :: [Element] -> [Element] -> VidarMatch ()
+matchStrict = undefined
+
+matchElem :: Element -> Element -> VidarMatch ()
+matchElem Anything  _         = return ()
+matchElem (Name n1) (Name n2) = matchNames n1 n2
+matchElem (Not e) e' = do
+    bs <- get
+    case evalStateT (matchElem e e') bs of
+        Right ()      -> err NotFail
+        Left BadInput -> err BadInput
+        Left e        -> return ()
+matchElem _ _ = err BadInput
 
 matchNames :: Name -> Name -> VidarMatch ()
 matchNames AnyName _ = return ()

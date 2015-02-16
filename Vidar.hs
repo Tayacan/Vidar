@@ -1,32 +1,30 @@
 module Vidar where
 
-import qualified Data.Map as M
 import Data.List (intercalate)
 
 data Name = SomeName String
           | ExactName String
           | AnyName
 
-type Nametable = M.Map String String
+data Block = UnorderedBlock [Element]
+           | OrderedBlock [Element]
+           | StrictBlock [Element]
 
-data Block v = UnorderedBlock [Element v]
-             | OrderedBlock [Element v]
-             | StrictBlock [Element v]
+data Element = Block Name Block
+             | SubBlock Block
+             | Binding Name Element -- Variable binding
+             | Name Name
+             | Anything
+             | Not Element
 
-data Element value = Block Name (Block value)
-                   | SubBlock (Block value)
-                   | Binding Name (Element value) -- Variable binding
-                   | Expr value                   -- Expression
-                   | Anything
-
-type Vidar value = Element value
+type Vidar = Element
 
 ppName :: Name -> String
 ppName AnyName = "_"
 ppName (ExactName s) = "`" ++ s ++ "`"
 ppName (SomeName s)  = s
 
-ppBlock :: Show v => Int -> Int -> (Block v) -> String
+ppBlock :: Int -> Int -> Block -> String
 ppBlock d0 d1 (UnorderedBlock elems) =
     replicate d0 ' ' ++ "{" ++ "\n" ++
     concatMap (ppElem (d1 + 2)) elems ++
@@ -40,7 +38,7 @@ ppBlock d0 d1 (StrictBlock elems) =
     concatMap (ppElem (d1 + 2)) elems ++
     replicate d1 ' ' ++ ")\n"
 
-ppElem :: Show a => Int -> Element a -> String
+ppElem :: Int -> Element -> String
 ppElem d (Block n b) =
     replicate d ' ' ++
     ppName n ++
@@ -51,9 +49,9 @@ ppElem d (Binding n e) =
     replicate d ' ' ++
     ppName n ++ " = \n" ++
     ppElem (d + 2) e
-ppElem d (Expr value) =
-    replicate d ' ' ++ show value ++ "\n"
 ppElem d Anything = replicate d ' ' ++ "_\n"
+ppElem d (Name n) = replicate d ' ' ++ ppName n ++ "\n"
+ppElem d (Not x) = replicate d ' ' ++ "~ " ++ ppElem 0 x
 
-ppVidar :: Show a => [Element a] -> String
+ppVidar :: [Element] -> String
 ppVidar elems = intercalate "\n\n" $ map (ppElem 0) elems
