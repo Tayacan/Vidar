@@ -19,7 +19,7 @@ data Element value = Block Name (Block value)
                    | Expr value                   -- Expression
                    | Anything
 
-type Vidar value = [Element value]
+type Vidar value = Element value
 
 ppName :: Name -> String
 ppName AnyName = "_"
