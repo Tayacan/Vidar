@@ -5,6 +5,7 @@ module Vidar.Match
 import Vidar
 import qualified Data.Map as M
 import Control.Monad.State
+import Control.Applicative ((<$>))
 
 {-
   match :: Vidar -> Vidar -> VidarMatch
@@ -23,6 +24,7 @@ import Control.Monad.State
 type VidarMatch a = StateT Bindings (Either Fail) a
 
 data Fail = MismatchedNames String String
+          | BlockSize
           | BadInput -- the right-hand Vidar is weird
           | NotFail
     deriving Show
@@ -47,7 +49,14 @@ matchBlocks (StrictBlock a) (StrictBlock b) = matchStrict a b
 matchBlocks _ _ = undefined
 
 matchStrict :: [Element] -> [Element] -> VidarMatch ()
-matchStrict = undefined
+matchStrict a b = case zipWith' matchElem a b of
+    Nothing -> err BlockSize
+    Just xs -> sequence_ xs
+
+zipWith' :: (a -> b -> c) -> [a] -> [b] -> Maybe [c]
+zipWith' f (x:xs) (y:ys) = (f x y :) <$> zipWith' f xs ys
+zipWith' f [] []         = Just []
+zipWith' _ _ _           = Nothing
 
 matchElem :: Element -> Element -> VidarMatch ()
 matchElem Anything  _         = return ()
