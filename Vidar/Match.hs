@@ -58,6 +58,12 @@ matchElem (Not e) e' = do
         Right ()      -> err NotFail
         Left BadInput -> err BadInput
         Left e        -> return ()
+matchElem (Binding n e) (Binding n' e') = do
+    matchNames n n'
+    matchElem e e'
+matchElem (Block n b) (Block n' b') = do
+    matchNames n n'
+    matchBlocks b b'
 matchElem _ _ = err BadInput
 
 matchNames :: Name -> Name -> VidarMatch ()
