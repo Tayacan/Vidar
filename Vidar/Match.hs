@@ -40,7 +40,7 @@ err = lift . Left
 match :: Vidar -- structure we want
       -> Vidar -- structure we actually have
       -> VidarMatch ()
-match _ _ = undefined
+match = matchElem
 
 matchBlocks :: Block
             -> Block
