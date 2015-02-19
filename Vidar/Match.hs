@@ -1,5 +1,6 @@
 module Vidar.Match
 ( match
+, eval
 ) where
 
 import Vidar
@@ -25,7 +26,7 @@ type VidarMatch a = StateT Bindings (Either Fail) a
 
 data Fail = MismatchedNames String String
           | BlockSize
-          | BadInput -- the right-hand Vidar is weird
+          | BadInput -- One of the Vidars contain stuff we can't handle (yet?)
           | NotFail
     deriving Show
 
@@ -45,8 +46,19 @@ match = matchElem
 matchBlocks :: Block
             -> Block
             -> VidarMatch ()
-matchBlocks (StrictBlock a) (StrictBlock b) = matchStrict a b
+matchBlocks (StrictBlock a) (StrictBlock b)    = matchStrict a b
+matchBlocks (UnorderedBlock a) (StrictBlock b) = matchUnorderedStrict a b
 matchBlocks _ _ = undefined
+
+-- Match an actual strict block against the desired unordered block.
+-- Each element in the unordered block must have a match in the strict block.
+-- Each Not-element in the unordered block must not have any matches in the
+-- strict block.
+matchUnorderedStrict :: [Element] -> [Element] -> VidarMatch ()
+matchUnorderedStrict a b = sequence_ $ map (matchAgainstBlock b) a
+
+matchAgainstBlock :: [Element] -> Element -> VidarMatch ()
+matchAgainstBlock block e = undefined
 
 matchStrict :: [Element] -> [Element] -> VidarMatch ()
 matchStrict a b = case zipWith' matchElem a b of
@@ -73,7 +85,7 @@ matchElem (Binding n e) (Binding n' e') = do
 matchElem (Block n b) (Block n' b') = do
     matchNames n n'
     matchBlocks b b'
-matchElem _ _ = err BadInput
+matchElem _ _ = undefined
 
 matchNames :: Name -> Name -> VidarMatch ()
 matchNames AnyName _ = return ()
