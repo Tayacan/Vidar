@@ -26,6 +26,7 @@ type VidarMatch a = StateT Bindings (Either Fail) a
 
 data Fail = MismatchedNames String String
           | BlockSize
+          | MissingElement
           | BadInput -- One of the Vidars contain stuff we can't handle (yet?)
           | NotFail
     deriving Show
@@ -58,7 +59,13 @@ matchUnorderedStrict :: [Element] -> [Element] -> VidarMatch ()
 matchUnorderedStrict a b = sequence_ $ map (matchAgainstBlock b) a
 
 matchAgainstBlock :: [Element] -> Element -> VidarMatch ()
-matchAgainstBlock block e = undefined
+matchAgainstBlock block (Not e)  = case evalStateT (matchAgainstBlock block e) M.empty of
+    Right ()      -> err NotFail
+    Left BadInput -> err BadInput
+    Left e        -> return ()
+matchAgainstBlock [] _           = err MissingElement
+matchAgainstBlock block Anything = return ()
+matchAgainstBlock block e        = undefined
 
 matchStrict :: [Element] -> [Element] -> VidarMatch ()
 matchStrict a b = case zipWith' matchElem a b of
