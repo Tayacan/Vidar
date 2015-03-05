@@ -26,9 +26,9 @@ type VidarMatch a = StateT Bindings (Either Fail) a
 
 data Fail = MismatchedNames String String
           | BlockSize
-          | MissingElement
-          | BadInput -- One of the Vidars contain stuff we can't handle (yet?)
-          | NotFail
+          | MissingElement Element
+          | BadInput String -- One of the Vidars contain stuff we can't handle (yet?)
+          | NotFail Element Element
     deriving Show
 
 type Bindings = M.Map String String
@@ -36,7 +36,7 @@ type Bindings = M.Map String String
 eval :: VidarMatch a -> Either Fail a
 eval v = evalStateT v $ M.empty
 
-err :: Fail -> VidarMatch ()
+err :: Fail -> VidarMatch a
 err = lift . Left
 
 match :: Vidar -- structure we want
@@ -49,7 +49,7 @@ matchBlocks :: Block
             -> VidarMatch ()
 matchBlocks (StrictBlock a) (StrictBlock b)    = matchStrict a b
 matchBlocks (UnorderedBlock a) (StrictBlock b) = matchUnorderedStrict a b
-matchBlocks _ _ = undefined
+matchBlocks _ _ = err $ BadInput "matchBlocks"
 
 -- Match an actual strict block against the desired unordered block.
 -- Each element in the unordered block must have a match in the strict block.
@@ -58,14 +58,21 @@ matchBlocks _ _ = undefined
 matchUnorderedStrict :: [Element] -> [Element] -> VidarMatch ()
 matchUnorderedStrict a b = sequence_ $ map (matchAgainstBlock b) a
 
-matchAgainstBlock :: [Element] -> Element -> VidarMatch ()
-matchAgainstBlock block (Not e)  = case evalStateT (matchAgainstBlock block e) M.empty of
-    Right ()      -> err NotFail
-    Left BadInput -> err BadInput
-    Left e        -> return ()
-matchAgainstBlock [] _           = err MissingElement
-matchAgainstBlock block Anything = return ()
-matchAgainstBlock block e        = undefined
+matchAgainstBlock :: [Element] -> Element -> VidarMatch Element
+matchAgainstBlock block (Not e)  = case eval (matchAgainstBlock block e) of
+    Right e'                -> err $ NotFail e e'
+    Left (MissingElement _) -> return (Not e)
+    Left (BadInput s)       -> err $ BadInput s
+    Left e                  -> err e --return ()
+matchAgainstBlock [] e           = err $ MissingElement e
+matchAgainstBlock block Anything = return Anything
+matchAgainstBlock block e = foldl f (err $ MissingElement e) $ map (\x -> (e, x)) block
+  where f s (a, b) = case eval (matchElem a b) of
+                           Left e -> case eval s of
+                                       Right e -> return e
+                                       Left _  -> err e
+                           Right () -> return b
+--matchAgainstBlock block e        = err $ BadInput $ "matchAgainstBlock: " ++ show block ++ ", " ++ show e
 
 matchStrict :: [Element] -> [Element] -> VidarMatch ()
 matchStrict a b = case zipWith' matchElem a b of
@@ -83,16 +90,17 @@ matchElem (Name n1) (Name n2) = matchNames n1 n2
 matchElem (Not e) e' = do
     bs <- get
     case evalStateT (matchElem e e') bs of
-        Right ()      -> err NotFail
-        Left BadInput -> err BadInput
-        Left e        -> return ()
+        Right ()          -> err $ NotFail e e'
+        Left (BadInput s) -> err $ BadInput s
+        Left e            -> return ()
 matchElem (Binding n e) (Binding n' e') = do
     matchNames n n'
     matchElem e e'
 matchElem (Block n b) (Block n' b') = do
     matchNames n n'
     matchBlocks b b'
-matchElem _ _ = undefined
+matchElem (SubBlock b) (SubBlock b') = matchBlocks b b'
+matchElem _ _ = err $ BadInput "matchElem"
 
 matchNames :: Name -> Name -> VidarMatch ()
 matchNames AnyName _ = return ()
@@ -106,5 +114,5 @@ matchNames (SomeName n) (ExactName s) = do
     Nothing -> (put $ M.insert n s bs) >> return ()
     Just s' -> if s == s' then return ()
                else err $ MismatchedNames s' s
-matchNames _ _ = err BadInput
+matchNames _ _ = err $ BadInput "matchNames"
 
