@@ -27,9 +27,10 @@ This may seem a bit cumbersome, but it is rare that one would want to write a di
 
 This checks that:
 
-1. There is exactly one parameter, which will be refered to as "x"
-2. There is a plus expression, and the result of that expression is bound to some name which we don't care about
-3. A variable with the same name as the parameter is an argument to that expression. It doesn't matter _which_ argument.
+1. There is a function called "main"
+2. It has exactly one parameter, which will be refered to as "x"
+3. There is a plus expression, and the result of that expression is bound to some name which we don't care about
+4. A variable with the same name as the parameter is an argument to that expression. It doesn't matter _which_ argument.
 
 
 ## Real-world Example
