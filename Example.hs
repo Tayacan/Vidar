@@ -8,21 +8,21 @@ foo = [
             Name (ExactName "b2")
         ]),
         (SubBlock $ StrictBlock [
-            Binding (ExactName "literal4") (Block (ExactName "array") $ StrictBlock [Name $ ExactName "1"
+            Binding (ExactName "literal4") (Block (ExactName "Array") $ StrictBlock [Name $ ExactName "1"
                                                                                     ,Name $ ExactName "2"
                                                                                     ,Name $ ExactName "3"]),
-            Binding (ExactName "res5") (Block (ExactName "if") $ StrictBlock [Name $ ExactName "b2"
+            Binding (ExactName "res5") (Block (ExactName "If") $ StrictBlock [Name $ ExactName "b2"
                                                                              ,SubBlock $ StrictBlock [Name $ ExactName "0"]
                                                                              ,SubBlock $ StrictBlock [Name $ ExactName "1"]
                                                                              ]),
-            Binding (ExactName "x6") (Block (ExactName "leq") $ StrictBlock [Name $ ExactName "0"
+            Binding (ExactName "x6") (Block (ExactName "Leq") $ StrictBlock [Name $ ExactName "0"
                                                                             ,Name $ ExactName "res5"]),
-            Binding (ExactName "y7") (Block (ExactName "less") $ StrictBlock [Name $ ExactName "res5"
+            Binding (ExactName "y7") (Block (ExactName "Less") $ StrictBlock [Name $ ExactName "res5"
                                                                              ,Name $ ExactName "3"]),
-            Binding (ExactName "assert_arg8") (Block (ExactName "log_and") $ StrictBlock [Name $ ExactName "x6"
+            Binding (ExactName "assert_arg8") (Block (ExactName "Log_and") $ StrictBlock [Name $ ExactName "x6"
                                                                                          ,Name $ ExactName "y7"]),
-            Binding (ExactName "bounds_check9") (Block (ExactName "assert") $ StrictBlock [Name $ ExactName "assert_arg8"]),
-            Binding (ExactName "res10") (Block (ExactName "index") $ StrictBlock [SubBlock $ StrictBlock [Name $ ExactName "bounds_check9"]
+            Binding (ExactName "bounds_check9") (Block (ExactName "Assert") $ StrictBlock [Name $ ExactName "assert_arg8"]),
+            Binding (ExactName "res10") (Block (ExactName "Index") $ StrictBlock [SubBlock $ StrictBlock [Name $ ExactName "bounds_check9"]
                                                                                  ,Name $ ExactName "literal4"
                                                                                  ,SubBlock $ StrictBlock [Name $ ExactName "res5"]]),
             SubBlock $ StrictBlock [Name $ ExactName "res10"]
@@ -33,7 +33,7 @@ foo = [
 target :: [Element]
 target = [Block (ExactName "main") $
              StrictBlock [SubBlock $ UnorderedBlock []
-                         ,SubBlock $ UnorderedBlock [Not $ Binding AnyName (Block (ExactName "assert") $ UnorderedBlock [])]]]
+                         ,SubBlock $ UnorderedBlock [Not $ Binding AnyName (Block (ExactName "Assert") $ UnorderedBlock [])]]]
 
 {-
 

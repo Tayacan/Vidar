@@ -14,7 +14,7 @@ Would be represented in Vidar as:
 
     `main` ((`a`),
     (
-      `b` = `plus` (`a`, `1`),
+      `b` = `Plus` (`a`, `1`),
       (`b`)
     )
 
@@ -22,7 +22,7 @@ This may seem a bit cumbersome, but it is rare that one would want to write a di
 
     `main` (("x"),
     (
-      _ = `plus` {"x"}
+      _ = `Plus` {"x"}
     )
 
 This checks that:
@@ -41,7 +41,7 @@ An example of a futhark program with a Vidar test:
 // BEGIN_VIDAR
 // `main` ({},
 //   {
-//     ~ _ = `assert` {}
+//     ~ _ = `Assert` {}
 //   }
 // )
 // END_VIDAR
