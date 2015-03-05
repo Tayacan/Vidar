@@ -5,10 +5,12 @@ import Data.List (intercalate, intersperse)
 data Name = SomeName String
           | ExactName String
           | AnyName
+          deriving Show
 
 data Block = UnorderedBlock [Element]
            | OrderedBlock [Element]
            | StrictBlock [Element]
+           deriving Show
 
 data Element = Block Name Block
              | SubBlock Block
@@ -16,6 +18,7 @@ data Element = Block Name Block
              | Name Name
              | Anything
              | Not Element
+             deriving Show
 
 type Vidar = Element
 
