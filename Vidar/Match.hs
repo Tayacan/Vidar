@@ -59,20 +59,32 @@ matchUnorderedStrict :: [Element] -> [Element] -> VidarMatch ()
 matchUnorderedStrict a b = sequence_ $ map (matchAgainstBlock b) a
 
 matchAgainstBlock :: [Element] -> Element -> VidarMatch Element
-matchAgainstBlock block (Not e)  = case eval (matchAgainstBlock block e) of
+matchAgainstBlock block (Not e)  = do
+  bs <- get
+  case evalStateT (matchAgainstBlock block e) bs of
     Right e'                -> err $ NotFail e e'
     Left (MissingElement _) -> return (Not e)
     Left (BadInput s)       -> err $ BadInput s
-    Left e                  -> err e --return ()
+    Left e'                 -> err e' --return ()
 matchAgainstBlock [] e           = err $ MissingElement e
 matchAgainstBlock block Anything = return Anything
 matchAgainstBlock block e = foldl f (err $ MissingElement e) $ map (\x -> (e, x)) block
-  where f s (a, b) = case eval (matchElem a b) of
-                           Left e -> case eval s of
-                                       Right e -> return e
-                                       Left _  -> err e
-                           Right () -> return b
---matchAgainstBlock block e        = err $ BadInput $ "matchAgainstBlock: " ++ show block ++ ", " ++ show e
+  where f s (a, b) = do
+          bs <- get
+          case evalStateT s bs of
+              Right _ -> s
+              Left _  -> do
+                bs <- get
+                case evalStateT (matchElem a b) bs of
+                  Right () -> return b
+                  Left e   -> err e
+
+--   case eval (matchElem a b) of
+--                           Left e -> case eval s of
+--                                       Right e -> return e
+--                                       Left _  -> err e
+--                           Right () -> return b
+--matchAgainstBlock block e        = err $ BadInput $ "matchAgainstBlock: " ++ show block ++ " ||| " ++ show e
 
 matchStrict :: [Element] -> [Element] -> VidarMatch ()
 matchStrict a b = case zipWith' matchElem a b of
@@ -100,7 +112,7 @@ matchElem (Block n b) (Block n' b') = do
     matchNames n n'
     matchBlocks b b'
 matchElem (SubBlock b) (SubBlock b') = matchBlocks b b'
-matchElem _ _ = err $ BadInput "matchElem"
+matchElem a b = err $ BadInput $ "matchElem " ++ show a ++ " vs " ++ show b
 
 matchNames :: Name -> Name -> VidarMatch ()
 matchNames AnyName _ = return ()

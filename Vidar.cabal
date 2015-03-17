@@ -16,7 +16,7 @@ build-type:          Simple
 cabal-version:       >=1.10
 
 library
-  exposed-modules:     Vidar, Vidar.Match
+  exposed-modules:     Vidar, Vidar.Match, Vidar.Parser
   -- other-modules:       
   -- other-extensions:    
   build-depends:       base >=4.7 && <4.8, containers >=0.5 && <0.6, mtl >=2.2

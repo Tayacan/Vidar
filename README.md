@@ -12,17 +12,17 @@ Vidar contains a small language for specifying program structures. How these str
 
 Would be represented in Vidar as:
 
-    `main` ((`a`),
+    "main" (("a"),
     (
-      `b` = `Plus` (`a`, `1`),
-      (`b`)
+      "b" = "Plus" ("a", "1"),
+      ("b")
     )
 
 This may seem a bit cumbersome, but it is rare that one would want to write a direct translation into Vidar by hand - that sort of thing should be handled automatically. Instead, one might write a test that checks if the function main has exactly one argument, and if that argument is used in a plus-expression inside the body.
 
-    `main` (("x"),
+    "main" (("x"),
     (
-      _ = `Plus` {"x"}
+      _ = "Plus" {"x"}
     )
 
 This checks that:
@@ -39,9 +39,9 @@ An example of a futhark program with a Vidar test:
 
 ```
 // BEGIN_VIDAR
-// `main` ({},
+// "main" ({},
 //   {
-//     ~ _ = `Assert` {}
+//     ~ _ = "Assert" {}
 //   }
 // )
 // END_VIDAR

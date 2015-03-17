@@ -24,7 +24,7 @@ type Vidar = Element
 
 ppName :: Name -> String
 ppName AnyName = "_"
-ppName (ExactName s) = "`" ++ s ++ "`"
+ppName (ExactName s) = "\"" ++ s ++ "\""
 ppName (SomeName s)  = s
 
 ppBlock :: Int -> Int -> Block -> String
