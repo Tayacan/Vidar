@@ -1,6 +1,5 @@
 module Vidar.Match
 ( match
-, eval
 ) where
 
 import Vidar
@@ -41,8 +40,8 @@ err = lift . Left
 
 match :: Vidar -- structure we want
       -> Vidar -- structure we actually have
-      -> VidarMatch ()
-match = matchElem
+      -> Either Fail ()
+match v = eval . matchElem v
 
 matchBlocks :: Block
             -> Block
